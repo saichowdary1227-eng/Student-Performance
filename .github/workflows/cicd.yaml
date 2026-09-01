@@ -48,8 +48,8 @@ jobs:
           file: Dockerfile
           push: true
           tags: |
-            ${{ secrets.DOCKER_HUB_USERNAME }}/Student:latest
-            ${{ secrets.DOCKER_HUB_USERNAME }}/Student:${{ steps.image_tag.outputs.image_tag }}
+            ${{ secrets.DOCKER_HUB_USERNAME }}/student:latest
+            ${{ secrets.DOCKER_HUB_USERNAME }}/student:${{ steps.image_tag.outputs.image_tag }}
 
   deploy-to-argocd:
     runs-on: self-hosted
@@ -62,7 +62,7 @@ jobs:
 
       - name: 2. Update Image in application.yaml
         run: |
-          sed -i "s|__IMAGE_NAME__|${{ secrets.DOCKER_HUB_USERNAME }}/Student:${{ needs.build-and-push.outputs.image_tag }}|g" argoCD/application.yaml
+          sed -i "s|__IMAGE_NAME__|${{ secrets.DOCKER_HUB_USERNAME }}/student:${{ needs.build-and-push.outputs.image_tag }}|g" argoCD/application.yaml
 
           echo "--- Updated application.yaml ---"
           cat argoCD/application.yaml
