@@ -3,6 +3,6 @@ WORKDIR /student
 COPY app/requirements.txt .
 RUN pip install -r requirements.txt
 COPY . .
-RUN python3.12 app/train.py
+RUN python3.12 train.py
 EXPOSE 5000
-CMD ["python3.12", "app/app.py"]
+CMD ["python3.12", "app.py"]
