@@ -1,8 +1,8 @@
 FROM python:3.12
 WORKDIR /student
-COPY requirements.txt .
-RUN pip install -r requirements.txt
+COPY app/requirements.txt .
+RUN pip install -r app/requirements.txt
 COPY . .
-RUN python3.12 train.py
+RUN python3.12 app/train.py
 EXPOSE 5000
-CMD ["python3.12", "app.py"]
+CMD ["python3.12", "app/app.py"]
