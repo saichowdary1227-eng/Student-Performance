@@ -55,27 +55,21 @@ jobs:
     name: Deploy to Argo CD
     needs: build-and-push
 
-    
-    env:
-      KUBECONFIG: /home/docker/.kube/config
-
     steps:
       - name: 1. Checkout Repository
         uses: actions/checkout@v4
 
-      - name: 2. Check Kubernetes Connection
+      - name: 2. List files in the repository (for debugging)
         run: |
-          echo "Runner user: $(whoami)"
-          echo "Kubeconfig: ${KUBECONFIG}"
+          echo "Current directory: $(pwd)"
+          echo "Listing all files..."
+          ls -R .
 
-          test -f "${KUBECONFIG}" || {
-            echo "ERROR: ${KUBECONFIG} does not exist"
-            exit 1
-          }
-
-          kubectl config use-context kind-three-node-cluster
-          kubectl cluster-info
-          kubectl get nodes
+      - name: 4. Update Deployment with new Image Tag
+        run: |
+          sed -i "s|__IMAGE_NAME__|${{ env.DOCKER_IMAGE }}:${{ needs.build-and-push.outputs.image_tag }}|g" argoCD/application.yaml
+          echo "--- Updated deployment.yaml (deployment.yaml) ---"
+          cat argoCD/application.yaml
 
       - name: 3. Apply Argo CD Application
         run: |
