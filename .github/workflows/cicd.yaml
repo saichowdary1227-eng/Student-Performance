@@ -1,5 +1,3 @@
-name: CI/CD - Build, Push and Deploy
-
 on:
   push:
     branches:
@@ -53,7 +51,6 @@ jobs:
             ${{ secrets.DOCKER_HUB_USERNAME }}/student:${{ steps.image_tag.outputs.image_tag }}
 
   deploy-to-argocd:
-   deploy-to-argocd:
     runs-on: self-hosted
     name: Deploy to Argo CD
     needs: build-and-push
