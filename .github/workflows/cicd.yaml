@@ -55,9 +55,7 @@ jobs:
     name: Deploy to Argo CD
     needs: build-and-push
 
-    permissions:
-      contents: write
-
+    
     env:
       KUBECONFIG: /home/docker/.kube/config
 
