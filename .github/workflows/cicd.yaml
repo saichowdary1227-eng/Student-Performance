@@ -73,7 +73,7 @@ jobs:
 
       - name: 3. Apply Application File
         run: |
-          kubectl apply -f argoCD/application.yaml
+          kubectl apply -f application.yaml
 
       - name: 4. Check Argo CD Applications
         run: |
