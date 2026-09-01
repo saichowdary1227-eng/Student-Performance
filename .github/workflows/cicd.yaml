@@ -1,0 +1,88 @@
+name: CI/CD - Build, Push and Deploy
+
+on:
+  push:
+    branches:
+      - Dev
+  workflow_dispatch:
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    name: Build and Push to Docker Hub
+
+    outputs:
+      image_tag: ${{ steps.image_tag.outputs.image_tag }}
+
+    steps:
+      - name: 1. Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 2. Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+
+      - name: 3. Install Dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: 4. Set Image Tag
+        id: image_tag
+        run: |
+          echo "image_tag=${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: 5. Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 6. Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: 7. Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_HUB_USERNAME }}/employeee:latest
+            ${{ secrets.DOCKER_HUB_USERNAME }}/employeee:${{ steps.image_tag.outputs.image_tag }}
+
+  deploy-to-argocd:
+    runs-on: self-hosted
+    name: Deploy to Argo CD
+    needs: build-and-push
+
+    steps:
+      - name: 1. Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 2. Update Image in application.yaml
+        run: |
+          sed -i "s|__IMAGE_NAME__|${{ secrets.DOCKER_HUB_USERNAME }}/employeee:${{ needs.build-and-push.outputs.image_tag }}|g" application.yaml
+
+          echo "--- Updated application.yaml ---"
+          cat application.yaml
+
+      - name: 3. Apply Application File
+        run: |
+          kubectl apply -f application.yaml
+
+      - name: 4. Check Argo CD Applications
+        run: |
+          kubectl get applications -n argocd
+
+      - name: 5. Check Deployments
+        run: |
+          kubectl get deployments
+
+      - name: 6. Check Services
+        run: |
+          kubectl get services
+
+      - name: 7. Check Nodes
+        run: |
+          kubectl get nodes -o wide
